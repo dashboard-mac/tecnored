@@ -1888,6 +1888,10 @@ function refresh(){
 }
 refresh();
 
+// Ler parâmetro da URL e aplicar filtro (ex: ?cc=Marabá)
+const _urlCC = new URLSearchParams(window.location.search).get('cc');
+if(_urlCC) setCC(_urlCC);
+
 // Barra de scroll espelho no topo da tabela de ativos
 (function(){
   const tw=document.getElementById('twrapActive');
