@@ -456,8 +456,8 @@ canvas{image-rendering:crisp-edges;image-rendering:-webkit-optimize-contrast}
     <input type="password" id="footerPwd" placeholder="senha" maxlength="20" style="display: none; font-size: 10px; padding: 3px 8px; border-radius: 6px; border: .5px solid var(--border); background: var(--surface2); width: 80px; outline: none;" onkeydown="if(event.key==='Enter')checkFooterPwd()">
     <button id="footerPwdBtn" onclick="checkFooterPwd()" style="display: none; font-size: 10px; padding: 4px 10px; border-radius: 6px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; background: rgb(136, 136, 136); color: rgb(255, 255, 255); cursor: pointer; font-weight: 500;">OK</button>
     <input type="file" id="fi" accept=".xlsm,.xlsx,.xls" onchange="loadFile(event)" style="display:none">
-    <button id="btnCarregar" onclick="document.getElementById('fi').click()" style="display: inline-block; font-size: 10px; padding: 4px 10px; border-radius: 6px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; background: rgb(26, 26, 24); color: rgb(255, 255, 255); cursor: pointer; font-weight: 500; white-space: nowrap;">📂 Carregar Planilha</button>
-    <button id="btnExportar" onclick="exportHTML()" style="display: inline-block; font-size: 10px; padding: 4px 10px; border-radius: 6px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; background: rgb(30, 107, 46); color: rgb(255, 255, 255); cursor: pointer; font-weight: 500; white-space: nowrap;">⬇ Exportar HTML</button>
+    <button id="btnCarregar" onclick="document.getElementById('fi').click()" style="display: none; font-size: 10px; padding: 4px 10px; border-radius: 6px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; background: rgb(26, 26, 24); color: rgb(255, 255, 255); cursor: pointer; font-weight: 500; white-space: nowrap;">📂 Carregar Planilha</button>
+    <button id="btnExportar" onclick="exportHTML()" style="display: none; font-size: 10px; padding: 4px 10px; border-radius: 6px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; background: rgb(30, 107, 46); color: rgb(255, 255, 255); cursor: pointer; font-weight: 500; white-space: nowrap;">⬇ Exportar HTML</button>
   </div>
 </footer>
 
@@ -792,7 +792,7 @@ function updateMetrics(){
 // ── GRÁFICOS ─────────────────────────────────────────────────
 // Configurações globais Chart.js para nitidez em qualquer zoom/tela
 Chart.defaults.font.family="-apple-system,'Segoe UI',sans-serif";
-Chart.defaults.animation=false; // sem animação = sem frames intermediários embaçados
+// animação habilitada (padrão Chart.js)
 let c0,c3,c4,c5,cStatusMini,cVenc;
 
 // ── Plugin: degradê vertical nas barras (baixo=escuro, cima=claro) ──
