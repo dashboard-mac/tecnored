@@ -1511,9 +1511,11 @@ function updateCharts(){
   const areas={};
   brlGraf.forEach(c=>{
     if(c.area&&c.area!=='-'){
-      const a=areas[c.area]||(areas[c.area]={v:0,n:0});
+      const a=areas[c.area]||(areas[c.area]={v:0,n:0,porMoeda:{}});
       const val=execArea(c);
       a.v+=val;
+      const m=c.moeda||'BRL';
+      a.porMoeda[m]=(a.porMoeda[m]||0)+val;
       // Conta contrato apenas se teve medição no período selecionado
       // (se 2026, conta todos; se mês específico, só quem mediu naquele mês)
       if(mesAreaIdx===-1||val>0) a.n++;
@@ -1575,6 +1577,15 @@ function updateCharts(){
           label:ctx=>{
             const it=aS[ctx.dataIndex][1];
             const fmtV=v=>v>=1e6?'R$ '+(v/1e6).toFixed(2)+'M':v>=1e3?'R$ '+(v/1e3).toFixed(1)+'k':'R$ '+v.toFixed(0);
+            if(currentCC==='intl'&&it.porMoeda){
+              const _sym={'BRL':'R$','USD':'$','EUR':'€'};
+              const _parts=Object.keys(it.porMoeda).sort().map(m=>{
+                const mv=it.porMoeda[m];
+                const mfmt=mv>=1e6?(mv/1e6).toFixed(2)+'M':mv>=1e3?(mv/1e3).toFixed(1)+'k':mv.toFixed(0);
+                return (_sym[m]||m)+' '+mfmt;
+              });
+              return ['Executado: '+_parts.join('  /  '),'Contratos: '+it.n];
+            }
             return ['Executado: '+fmtV(it.v),'Contratos: '+it.n];
           }
         }}},
@@ -1623,6 +1634,16 @@ function updateCharts(){
     if(!c.gestao) return;
     ccs[c.gestao]=(ccs[c.gestao]||0)+execCC(c);
   });
+  // Estrutura auxiliar: total por moeda em cada localidade (usado no tooltip do filtro intl)
+  const ccsPorMoeda={};
+  if(currentCC==='intl'){
+    brlGraf.forEach(c=>{
+      if(!c.gestao) return;
+      if(!ccsPorMoeda[c.gestao]) ccsPorMoeda[c.gestao]={};
+      const m=c.moeda||'BRL';
+      ccsPorMoeda[c.gestao][m]=(ccsPorMoeda[c.gestao][m]||0)+execCC(c);
+    });
+  }
   // Ordenar sempre Marabá primeiro, Pindamonhangaba segundo (ordem canônica dos CCs)
   const CC_ORDER=['Marabá','Pindamonhangaba'];
   const ccsLabels=Object.keys(ccs).sort((a,b)=>{
@@ -1651,7 +1672,18 @@ function updateCharts(){
           label:ctx=>{
             const v=ctx.parsed;
             const pct=ccTotal>0?(v/ccTotal*100).toFixed(1)+'%':'—';
-            const fmt=v>=1e6?'R$ '+(v/1e6).toFixed(2)+'M':v>=1e3?'R$ '+(v/1e3).toFixed(1)+'k':'R$ '+v.toFixed(0);
+            let fmt;
+            if(currentCC==='intl'&&ccsPorMoeda[ctx.label]){
+              const _sym={'BRL':'R$','USD':'$','EUR':'€'};
+              const _parts=Object.keys(ccsPorMoeda[ctx.label]).sort().map(m=>{
+                const mv=ccsPorMoeda[ctx.label][m];
+                const mfmt=mv>=1e6?(mv/1e6).toFixed(2)+'M':mv>=1e3?(mv/1e3).toFixed(1)+'k':mv.toFixed(0);
+                return (_sym[m]||m)+' '+mfmt;
+              });
+              fmt=_parts.join('  /  ');
+            } else {
+              fmt=v>=1e6?'R$ '+(v/1e6).toFixed(2)+'M':v>=1e3?'R$ '+(v/1e3).toFixed(1)+'k':'R$ '+v.toFixed(0);
+            }
             const linhas=[' '+ctx.label+': '+fmt+' ('+pct+')'];
             // Linhas adicionais dinâmicas por gestão
             if(ctx.label==='Marabá'){
