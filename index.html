@@ -350,6 +350,7 @@ canvas{image-rendering:crisp-edges;image-rendering:-webkit-optimize-contrast}
         <thead><tr>
           <th>#</th><th>CC</th><th>Fornecedor</th><th>Contrato</th><th>Área</th>
           <th>Gestão</th><th>Gestor</th><th>Término</th><th>Dias</th><th>Status</th>
+          <th style="text-align:center;width:48px">TAC/TEC</th>
           <th style="text-align:right">Vlr. Contrato</th>
           <th style="text-align:right">Exec. Acum.</th>
           <th style="text-align:right">Exec. 2026</th>
@@ -1922,6 +1923,7 @@ function renderTables(){
       <td style="color:var(--text2);white-space:nowrap">${c.termino}</td>
       <td style="font-weight:700;font-size:10px;color:${SFGC[c.status]||'#888'};white-space:nowrap">${c.dias_vencer>0?'+'+c.dias_vencer:c.dias_vencer}d</td>
       <td><span class="badge ${SBADGE[c.status]||''}">${c.status}</span></td>
+      <td style="text-align:center;width:48px">${(()=>{const o=(c.obs||'').trim().toUpperCase();if(o.startsWith('TAC'))return '<span style="font-size:9px;font-weight:500;background:#FAEEDA;color:#633806;border-radius:3px;padding:1px 3px;white-space:nowrap">em TAC</span>';if(o.startsWith('TEC'))return '<span style="font-size:9px;font-weight:500;background:#E6F1FB;color:#0C447C;border-radius:3px;padding:1px 3px;white-space:nowrap">em TEC</span>';return '';})()}</td>
       <td style="text-align:right;white-space:nowrap">${usd}${c.vlr>0?fmtM(c.vlr,c.moeda):'—'}</td>
       <td style="text-align:right;white-space:nowrap">${fmtM(execT(c),c.moeda)}</td>
       <td style="text-align:right;white-space:nowrap">${fmtM(c.exec_2026||0,c.moeda)}</td>
