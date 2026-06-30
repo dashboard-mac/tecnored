@@ -205,7 +205,7 @@ canvas{image-rendering:crisp-edges;image-rendering:-webkit-optimize-contrast}
   <div style="margin-bottom:14px">
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
-        <div class="card-ttl" style="margin-bottom:0">Pareto por valor contratado<span class="card-sub">Contratos ativos · BRL · ordenado decrescente</span></div>
+        <div class="card-ttl" style="margin-bottom:0">Pareto por valor contratado<span class="card-sub" id="sub-pareto">Contratos ativos · BRL · ordenado decrescente</span></div>
         <div style="display:flex;align-items:center;gap:6px">
           <span style="font-size:10px;color:var(--text3)">Situação pareto em:</span>
           <select id="selMesPareto" onchange="updateCharts()" style="font-size:11px;padding:4px 9px;border-radius:8px;border:.5px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer">
@@ -238,7 +238,7 @@ canvas{image-rendering:crisp-edges;image-rendering:-webkit-optimize-contrast}
   <!-- Charts row 2: novo gráfico + medições por mês -->
   <div class="ch2" style="margin-bottom:14px;align-items:stretch">
     <div class="card" style="display:flex;flex-direction:column">
-      <div class="card-ttl">Execução acumulada por contrato<span class="card-sub">Contratos ativos · BRL · % do valor total</span></div>
+      <div class="card-ttl">Execução acumulada por contrato<span class="card-sub" id="sub-execacum">Contratos ativos · BRL · % do valor total</span></div>
       <div class="lgnd">
         <span><span class="ld" style="background:#1b5e20"></span>0–70% Regular</span>
         <span><span class="ld" style="background:#FFD600"></span>71–85% Atenção</span>
@@ -667,8 +667,17 @@ function setCC(cc){
   document.querySelectorAll('.cc-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById(cc==='all'?'btn-all':'btn-'+cc)?.classList.add('active');
   // Atualizar subtítulos dos gráficos conforme filtro
-  const _subLoc = document.getElementById('sub-localidade');
+  const _subPareto = document.getElementById('sub-pareto');
+  const _subExecAcum = document.getElementById('sub-execacum');
+  if(cc==='intl'){
+    if(_subPareto) _subPareto.textContent = 'Contratos ativos · não BRL · ordenado decrescente';
+    if(_subExecAcum) _subExecAcum.textContent = 'Contratos ativos · não BRL · % do valor total';
+  } else {
+    if(_subPareto) _subPareto.textContent = 'Contratos ativos · BRL · ordenado decrescente';
+    if(_subExecAcum) _subExecAcum.textContent = 'Contratos ativos · BRL · % do valor total';
+  }
   const _subArea = document.getElementById('sub-area');
+  const _subLoc = document.getElementById('sub-localidade');
   if(cc==='intl'){
     if(_subLoc) _subLoc.textContent = 'Valor executado · por moeda e por centro de gestão';
     if(_subArea) _subArea.textContent = 'Valor por moeda · e quantidade de contratos ativos';
@@ -1163,7 +1172,7 @@ function updateMesMes(){
           grid:{display:false}
         },
         y:{
-          ticks:{callback:v=>v>=1e6?'R$'+(v/1e6).toFixed(1)+'M':v>=1e3?'R$'+(v/1e3).toFixed(0)+'k':v, font:{size:11}},
+          ticks:{callback:v=>v>=1e6?(currentCC==='intl'?(v/1e6).toFixed(1)+'M':'R$ '+(v/1e6).toFixed(1)+'M'):v>=1e3?(currentCC==='intl'?(v/1e3).toFixed(0)+'k':'R$ '+(v/1e3).toFixed(0)+'k'):v, font:{size:11}},
           grid:{color:'rgba(0,0,0,0.05)'}
         }
       }
@@ -1173,13 +1182,15 @@ function updateMesMes(){
 
 function updateCharts(){
   const pool=filtered(),active=pool.filter(isActive),brl=active.filter(c=>c.moeda==='BRL');
+  // Para o filtro intl, os gráficos usam 'active' (internacionais) em vez de 'brl'
+  const brlGraf=currentCC==='intl'?active:brl;
 
   // ── Filtro de mês do Pareto ──────────────────────────────────
   // MESES_INICIO: índice 0=Jan/26 … 11=Dez/26
   // Formato de inicio esperado: 'DD/MM/AAAA' ou 'DD/MM/AA' ou vazio
   const MESES_NUM=['01','02','03','04','05','06','07','08','09','10','11','12'];
   const selPareto = document.getElementById('selMesPareto')?.value || 'all';
-  const brlPareto = selPareto === 'all' ? brl : brl.filter(c=>{
+  const brlPareto = selPareto === 'all' ? brlGraf : brlGraf.filter(c=>{
     if(!c.inicio) return true; // sem data de início: inclui
     const parts = c.inicio.split('/');
     if(parts.length < 3) return true;
@@ -1216,17 +1227,17 @@ function updateCharts(){
     ...grupo80.map(c=>({
       label: c.fornecedor.split(' ')[0].slice(0,13),
       labelTooltip: (c.contrato||'—')+' · '+c.fornecedor,
-      vlr: c.vlr, grupo:'80%'
+      vlr: c.vlr, grupo:'80%', moeda: c.moeda||'BRL'
     })),
     ...top2rest.map(c=>({
       label: c.fornecedor.split(' ')[0].slice(0,13),
       labelTooltip: (c.contrato||'—')+' · '+c.fornecedor,
-      vlr: c.vlr, grupo:'20%'
+      vlr: c.vlr, grupo:'20%', moeda: c.moeda||'BRL'
     })),
     ...(outrosValor>0?[{
       label:'Outros',
       labelTooltip:'Outros ('+outrosLista.length+' contratos agrupados)',
-      vlr: outrosValor, grupo:'outros'
+      vlr: outrosValor, grupo:'outros', moeda: 'BRL'
     }]:[])
   ];
 
@@ -1288,10 +1299,12 @@ function updateCharts(){
         const barH   = bottom - barTop;
         const barMid = barTop + barH / 2;
         // Formato com espaço entre R$ e o número
-        const txt = val>=1e9 ? 'R$ '+(val/1e9).toFixed(1)+'B'
-                  : val>=1e6 ? 'R$ '+(val/1e6).toFixed(0)+'M'
-                  : val>=1e3 ? 'R$ '+(val/1e3).toFixed(0)+'k'
-                  :             'R$ '+val.toFixed(0);
+        const _moedaI = currentCC==='intl' ? (items[i]&&items[i].moeda||'USD') : 'BRL';
+        const _simI = _moedaI==='USD'?'$ ':_moedaI==='EUR'?'€ ':'R$ ';
+        const txt = val>=1e9 ? (currentCC==='intl'?_simI:'R$ ')+(val/1e9).toFixed(1)+'B'
+                  : val>=1e6 ? (currentCC==='intl'?_simI:'R$ ')+(val/1e6).toFixed(0)+'M'
+                  : val>=1e3 ? (currentCC==='intl'?_simI:'R$ ')+(val/1e3).toFixed(0)+'k'
+                  :             (currentCC==='intl'?_simI:'R$ ')+val.toFixed(0);
         ctx.font = 'bold 11px sans-serif';
         const tw = ctx.measureText(txt).width;  // comprimento do texto (= altura ao rotacionar 90°)
         const PAD = 8;
@@ -1375,7 +1388,7 @@ function updateCharts(){
       scales:{
         x:{ticks:{font:{size:11},maxRotation:35,minRotation:25},grid:{display:false}},
         y:{position:'left',
-           ticks:{callback:v=>v>=1e6?'R$'+(v/1e6).toFixed(0)+'M':v>=1e3?'R$'+(v/1e3).toFixed(0)+'k':v,font:{size:11}},
+           ticks:{callback:v=>v>=1e6?(currentCC==='intl'?(v/1e6).toFixed(0)+'M':'R$ '+(v/1e6).toFixed(0)+'M'):v>=1e3?(currentCC==='intl'?(v/1e3).toFixed(0)+'k':'R$ '+(v/1e3).toFixed(0)+'k'):v,font:{size:11}},
            grid:{color:'rgba(0,0,0,0.05)'}},
         y1:{position:'right',min:0,max:100,
             ticks:{callback:v=>v+'%',font:{size:11}},
@@ -1388,7 +1401,7 @@ function updateCharts(){
   // G_VE: Contratos por valor — % Executado (top 10 + Outros)
   // Retrato atual da carteira — independente do filtro de mês do Pareto
   // Usa 'brl' direto (todos contratos BRL ativos) sem filtro de vigência inicial
-  const brlTop=brl.filter(c=>c.vlr>0).sort((a,b)=>b.vlr-a.vlr);
+  const brlTop=brlGraf.filter(c=>c.vlr>0).sort((a,b)=>b.vlr-a.vlr);
   const top10=brlTop.slice(0,10);
   const outrosVE=brlTop.slice(10);
   const outrosVlrVE=outrosVE.reduce((s,c)=>s+c.vlr,0);
@@ -1469,7 +1482,7 @@ function updateCharts(){
       },
       scales:{
         x:{ticks:{font:{size:11},maxRotation:30,minRotation:20},grid:{display:false}},
-        y:{ticks:{callback:v=>v>=1e6?'R$'+(v/1e6).toFixed(0)+'M':v>=1e3?'R$'+(v/1e3).toFixed(0)+'k':v,font:{size:11}},
+        y:{ticks:{callback:v=>v>=1e6?(currentCC==='intl'?(v/1e6).toFixed(0)+'M':'R$ '+(v/1e6).toFixed(0)+'M'):v>=1e3?(currentCC==='intl'?(v/1e3).toFixed(0)+'k':'R$ '+(v/1e3).toFixed(0)+'k'):v,font:{size:11}},
            grid:{color:'rgba(0,0,0,0.05)'}}
       }
     }
@@ -1489,7 +1502,7 @@ function updateCharts(){
     return (c.meses&&c.meses[mesAreaIdx])||0;
   }
   const areas={};
-  brl.forEach(c=>{
+  brlGraf.forEach(c=>{
     if(c.area&&c.area!=='-'){
       const a=areas[c.area]||(areas[c.area]={v:0,n:0});
       const val=execArea(c);
@@ -1560,7 +1573,7 @@ function updateCharts(){
         }}},
       scales:{
         y:{grid:{display:false},ticks:{font:{size:11}}},
-        x:{ticks:{font:{size:11},callback:v=>v>=1e6?'R$'+(v/1e6).toFixed(1)+'M':v>=1e3?'R$'+(v/1e3).toFixed(0)+'k':v},grid:{color:'rgba(0,0,0,0.04)'}}
+        x:{ticks:{font:{size:11},callback:v=>v>=1e6?(currentCC==='intl'?(v/1e6).toFixed(1)+'M':'R$ '+(v/1e6).toFixed(1)+'M'):v>=1e3?(currentCC==='intl'?(v/1e3).toFixed(0)+'k':'R$ '+(v/1e3).toFixed(0)+'k'):v},grid:{color:'rgba(0,0,0,0.04)'}}
       }
     }
   });
@@ -1599,7 +1612,7 @@ function updateCharts(){
   }
   // Usa brl (BRL ativos) — mesma base dos outros gráficos
   const ccs={};
-  brl.forEach(c=>{
+  brlGraf.forEach(c=>{
     if(!c.gestao) return;
     ccs[c.gestao]=(ccs[c.gestao]||0)+execCC(c);
   });
