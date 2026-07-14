@@ -288,7 +288,7 @@ canvas{image-rendering:crisp-edges;image-rendering:-webkit-optimize-contrast}
         <div class="card-ttl" style="margin-bottom:0">Executado por localidade de gestão<span class="card-sub" id="sub-localidade">Valor executado · BRL · por centro de gestão</span></div>
         <div style="display:flex;align-items:center;gap:6px">
           <label for="fCCMes" style="font-size:11px;color:var(--text2);white-space:nowrap">Período:</label>
-          <select id="fCCMes" onchange="updateCharts()" style="font-size:11px;padding:3px 6px;border:1px solid #c8dbc8;border-radius:5px;background:#f7fbf8;color:var(--text1);cursor:pointer;outline:none">
+          <select id="fCCMes" onchange="syncPeriodoMes(this)" style="font-size:11px;padding:3px 6px;border:1px solid #c8dbc8;border-radius:5px;background:#f7fbf8;color:var(--text1);cursor:pointer;outline:none">
             <option value="-1" selected="">2026</option>
             <option value="0">Jan/26</option>
             <option value="1">Fev/26</option>
@@ -311,7 +311,7 @@ canvas{image-rendering:crisp-edges;image-rendering:-webkit-optimize-contrast}
         <div class="card-ttl" style="margin-bottom:0">Executado por área<span class="card-sub" id="sub-area">Valor BRL · e quantidade de contratos ativos</span></div>
         <div style="display:flex;align-items:center;gap:6px">
           <label for="fAreaMes" style="font-size:11px;color:var(--text2);white-space:nowrap">Período:</label>
-          <select id="fAreaMes" onchange="updateCharts()" style="font-size:11px;padding:3px 6px;border:1px solid #c8dbc8;border-radius:5px;background:#f7fbf8;color:var(--text1);cursor:pointer;outline:none">
+          <select id="fAreaMes" onchange="syncPeriodoMes(this)" style="font-size:11px;padding:3px 6px;border:1px solid #c8dbc8;border-radius:5px;background:#f7fbf8;color:var(--text1);cursor:pointer;outline:none">
             <option value="-1" selected="">2026</option>
             <option value="0">Jan/26</option>
             <option value="1">Fev/26</option>
@@ -2209,6 +2209,11 @@ function exportCSV(){
   a.download='contratos_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
 }
 
+function syncPeriodoMes(src){
+  const other = document.getElementById(src.id==='fCCMes'?'fAreaMes':'fCCMes');
+  if(other) other.value = src.value;
+  updateCharts();
+}
 function resetSeletores(){
   const _fc=document.getElementById('fCCMes');
   const _fa=document.getElementById('fAreaMes');
