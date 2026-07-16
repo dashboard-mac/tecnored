@@ -164,7 +164,7 @@ canvas{image-rendering:crisp-edges;image-rendering:-webkit-optimize-contrast}
   <button class="cc-btn active" onclick="setCC('Marabá')" id="btn-Marabá">💲 CC Marabá</button>
   <button class="cc-btn" onclick="setCC('Pindamonhangaba')" id="btn-Pindamonhangaba">💲 CCs Pindamonhangaba</button>
   <button class="cc-btn" onclick="setCC('intl')" id="btn-intl">🌐 Contratos Internacionais</button>
-  <span id="lblAtualizado" style="margin-left:auto;font-size:11px;color:#8a8a8a;white-space:nowrap">Atualizado em: 16/07/2026 07:23h</span>
+  <span id="lblAtualizado" style="margin-left:auto;font-size:11px;color:#8a8a8a;white-space:nowrap">Atualizado em: 16/07/2026 07:37h</span>
 </div>
 
 <!-- LEGENDA (fixa junto ao cabeçalho) -->
@@ -271,11 +271,11 @@ canvas{image-rendering:crisp-edges;image-rendering:-webkit-optimize-contrast}
         </select>
         </div>
       </div>
-      <div id="mesMesTotalLine" style="font-size:10px;color:var(--text3);margin-bottom:8px;flex-shrink:0">Mai/26 · 15 empresa(s) · Total: R$ 2.76M</div>
+      <div id="mesMesTotalLine" style="font-size:10px;color:var(--text3);margin-bottom:8px;flex-shrink:0">2026 · 34 empresa(s) · Total: R$ 23.46M | $ 9.0k | € 136.5k</div>
       <!-- scroll interno: o card não cresce, o conteúdo rola -->
       <div id="cMesMesScroll" style="overflow-x:auto;overflow-y:hidden;flex:1;min-height:0">
-        <div id="cMesMesWrap" style="position: relative; height: 317px; min-height: 280px; width: 720px;">
-          <canvas id="cMesMes" width="720" height="317" style="display: block; width: 720px; height: 317px; box-sizing: border-box;"></canvas>
+        <div id="cMesMesWrap" style="position: relative; height: 317px; min-height: 280px; width: 1556px;">
+          <canvas id="cMesMes" width="1556" height="317" style="display: block; width: 1556px; height: 317px; box-sizing: border-box;"></canvas>
         </div>
       </div>
     </div>
@@ -1233,7 +1233,7 @@ const SFGC={'CONFORTÁVEL':'#1b5e20','REGULAR':'#2e7d32','ATENÇÃO':'#7A5200','
 const USD_F=['MCC INTERNATIONAL','WILD & PARTNER'];
 const EUR_F=['YILKINS'];
 let currentCC='Marabá';
-let lastUpdated='15/07/2026 10:19h';
+let lastUpdated='16/07/2026 07:37h';
 function fmtTimestamp(d){
   const p=n=>String(n).padStart(2,'0');
   return p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear()+' '+p(d.getHours())+':'+p(d.getMinutes())+'h';
@@ -2728,8 +2728,9 @@ function exportHTML(){
   src=src.replace(/(id="footerPwd"[^>]*style="[^"]*display:\s*)(inline-block|block)/,'$1none');
   src=src.replace(/(id="footerPwdBtn"[^>]*style="[^"]*display:\s*)(inline-block|block)/,'$1none');
   // O marcador é a linha "let contracts = [...."
-  const updated=src.replace(/let contracts = \[[\s\S]*?\];(\s*\/\/ ── CONSTANTES)/,
+  let updated=src.replace(/let contracts = \[[\s\S]*?\];(\s*\/\/ ── CONSTANTES)/,
     'let contracts = '+dataStr+';$1');
+  updated=updated.replace(/let lastUpdated='[^']*';/, "let lastUpdated='"+lastUpdated+"';");
   const blob=new Blob([updated],{type:'text/html;charset=utf-8'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
